@@ -53,7 +53,7 @@ export default class App extends React.Component {
   interval = null
 
   componentDidUpdate(prevProp, prevState) {
-    if(this.state.remainingSeconds === 0 && prevState.remainingSeconds)
+    if(this.state.remainingSeconds === 0 && prevState.remainingSeconds !== 0)
       this.stop()
   }
 
