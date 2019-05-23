@@ -23,7 +23,13 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
-    }
+      "supportsTablet": true,
+      "bundleIdentifier": "com.adithyanr.timer"
+    },
+    "android": {
+      "package": "com.adithyanr.timer"
+    },
+    "description": "A simple timer app built with React native",
+    "githubUrl": "https://github.com/AdithyaBhat17/timer-app"
   }
 }

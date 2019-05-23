@@ -84,20 +84,21 @@ const createArray = length => {
 const AVAILABLE_MINUTES = createArray(60)
 const AVAILABLE_SECONDS = createArray(60)
 
+const sound = new Audio.Sound()
+sound.loadAsync(require('./assets/timer.mp3'))
+
 export default class App extends React.Component {
   state = {
     remainingSeconds: 5,
     isRunning: false,
     selectedMinutes: '4',
     selectedSeconds: '20'
-  }
+  }  
 
   interval = null
 
   playAudio = async () => {
-    const sound = new Audio.Sound()
     try {
-      await sound.loadAsync(require('./assets/timer.mp3'))
       await sound.playAsync()
     } catch (err) {
       console.err(err)
