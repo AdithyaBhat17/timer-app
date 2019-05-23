@@ -1,5 +1,15 @@
 import React from 'react'
-import { StyleSheet, Text, View, Dimensions, TouchableOpacity, StatusBar } from 'react-native'
+import { StyleSheet, 
+  Text, 
+  View, 
+  Dimensions, 
+  TouchableOpacity, 
+  StatusBar, 
+  Picker, 
+  Platform,
+  Vibration
+} from 'react-native'
+import { Audio } from 'expo'
 
 const { width, height } = Dimensions.get('window')
  
@@ -33,6 +43,24 @@ const styles = StyleSheet.create({
   },
   buttonTextStop: {
     color: '#ef424c'
+  },
+  picker: {
+    width: 50,
+    ...Platform.select({
+      android: {
+        marginLeft: 10,
+        color: '#f8f0ee',
+        backgroundColor: '#2d3440'
+      }
+    })
+  },
+  pickerItem: {
+    color: '#f8f0ee',
+    fontSize: 28,
+  },
+  pickerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center'
   }
 })
 
@@ -44,17 +72,44 @@ const getRemainingTime = (time) => {
   return { minutes: formatNumber(minutes), seconds: formatNumber(seconds)}
 }
 
+const createArray = length => {
+  const arr = []
+  for(let i=0;i<length;i++) {
+    arr.push(i.toString())
+  }
+
+  return arr
+}
+
+const AVAILABLE_MINUTES = createArray(60)
+const AVAILABLE_SECONDS = createArray(60)
+
 export default class App extends React.Component {
   state = {
     remainingSeconds: 5,
-    isRunning: false
+    isRunning: false,
+    selectedMinutes: '4',
+    selectedSeconds: '20'
   }
 
   interval = null
 
-  componentDidUpdate(prevProp, prevState) {
-    if(this.state.remainingSeconds === 0 && prevState.remainingSeconds !== 0)
+  playAudio = async () => {
+    const sound = new Audio.Sound()
+    try {
+      await sound.loadAsync(require('./assets/timer.mp3'))
+      await sound.playAsync()
+    } catch (err) {
+      console.err(err)
+    }
+  }
+
+  async componentDidUpdate(prevProp, prevState) {
+    if(this.state.remainingSeconds === 0 && prevState.remainingSeconds !== 0){
+      Vibration.vibrate([0, 1000, 0]) 
+      await this.playAudio()
       this.stop()
+    }
   }
 
   componentWillUnmount() {
@@ -62,8 +117,8 @@ export default class App extends React.Component {
   }  
 
   start = () => {
-    this.setState(start => ({
-      remainingSeconds: start.remainingSeconds - 1,
+    this.setState(state => ({
+      remainingSeconds: parseInt(state.selectedMinutes, 10) * 60 + parseInt(state.selectedSeconds, 10),
       isRunning: true
     })) // instant update, and then set interval
 
@@ -83,6 +138,39 @@ export default class App extends React.Component {
     })
   }
 
+  renderPickers = () => (
+    <View style={styles.pickerContainer}>
+      <Picker
+        style={styles.picker} 
+        itemStyle={styles.pickerItem}
+        selectedValue={this.state.selectedMinutes}
+        onValueChange={value => {
+          this.setState({selectedMinutes: value})
+        }}
+        mode="dropdown"
+      >
+        {AVAILABLE_MINUTES.map(value => (
+          <Picker.Item key={value} label={value} value={value}/>
+        ))}
+      </Picker>
+      <Text style={{fontSize: 21, color: '#f8f0ee'}}>minutes</Text>
+      <Picker
+        style={styles.picker} 
+        itemStyle={styles.pickerItem}
+        selectedValue={this.state.selectedSeconds}
+        onValueChange={value => {
+          this.setState({selectedSeconds: value})
+        }}
+        mode="dropdown"
+      >
+        {AVAILABLE_SECONDS.map(value => (
+          <Picker.Item key={value} label={value} value={value}/>
+        ))}
+      </Picker>
+      <Text style={{fontSize: 21, color: '#f8f0ee'}}>seconds</Text>
+    </View>
+  )
+
   render() {
     const { remainingSeconds, isRunning } = this.state
     const { minutes, seconds } = getRemainingTime(remainingSeconds)
@@ -90,7 +178,11 @@ export default class App extends React.Component {
     return (
       <View style={styles.container}>
         <StatusBar barStyle='light-content'/>
-        <Text style={styles.time}>{`${minutes}:${seconds}`}</Text>
+        {isRunning ? (
+          <Text style={styles.time}>{`${minutes}:${seconds}`}</Text>
+        ) : (
+          this.renderPickers()
+        )}
         {isRunning ? (
           <TouchableOpacity style={[styles.button, styles.buttonStop]} onPress={this.stop}>
             <Text style={[styles.buttonText, styles.buttonTextStop]}>Stop</Text>
