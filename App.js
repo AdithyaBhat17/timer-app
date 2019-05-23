@@ -72,14 +72,7 @@ const getRemainingTime = (time) => {
   return { minutes: formatNumber(minutes), seconds: formatNumber(seconds)}
 }
 
-const createArray = length => {
-  const arr = []
-  for(let i=0;i<length;i++) {
-    arr.push(i.toString())
-  }
-
-  return arr
-}
+const createArray = length => [...Array(length)].map((_, i) => i) // create an array of numbers the ez way.
 
 const AVAILABLE_MINUTES = createArray(60)
 const AVAILABLE_SECONDS = createArray(60)
